@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>SafeRoutesAIwhitehouse</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safe Routes AI - Howard County</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚸</text></svg>">
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner">
+      <i class="fas fa-route fa-spin"></i>
+    </div>
+    <div class="loading-message">Loading Safe Routes AI...</div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-route"></i>
+          <h1>Safe Routes <span>AI</span></h1>
+        </div>
+        <div class="header-right">
+          <div id="weather-info" class="weather-container"></div>
+          <div class="header-buttons">
+            <div id="authButtons" class="auth-buttons">
+              <button class="btn btn-secondary" onclick="showAuthModal('login')">
+                <i class="fas fa-sign-in-alt"></i> Login
+              </button>
+              <button class="btn btn-primary" onclick="showAuthModal('signup')">
+                <i class="fas fa-user-plus"></i> Sign Up
+              </button>
+            </div>
+            <div id="userProfile" class="user-profile" style="display: none;">
+              <div class="user-info">
+                <div class="user-avatar" id="userAvatar">JD</div>
+                <div>
+                  <div class="user-name" id="userName">John Doe</div>
+                  <div class="user-role" id="userRole">Parent</div>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="showView('account')">
+                <i class="fas fa-user"></i>
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <ul class="nav-list">
+        <li class="nav-item active" onclick="showView('dashboard')">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </li>
+        <li class="nav-item" onclick="showView('route-finder')">
+          <i class="fas fa-directions"></i>
+          <span>Route Finder</span>
+        </li>
+        <li class="nav-item" onclick="showView('saved-routes')">
+          <i class="fas fa-route"></i>
+          <span>Saved Routes</span>
+        </li>
+        <li class="nav-item" onclick="showView('safety-reports')">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Safety Reports</span>
+        </li>
+        <li class="nav-item" onclick="showView('walk-groups')">
+          <i class="fas fa-users"></i>
+          <span>Walk Groups</span>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Dashboard View -->
+      <div id="dashboard-view" class="view">
+        <div class="dashboard-header">
+          <div>
+            <h2>Howard County School Routes</h2>
+            <p>Plan safe walking and biking routes to schools in Howard County, MD</p>
+          </div>
+          <div class="dashboard-actions">
+            <button class="btn btn-primary" onclick="useCurrentLocation()">
+              <i class="fas fa-location-dot"></i> Get My Location
+            </button>
+            <button class="btn btn-secondary" onclick="useCurrentLocation()">
+              <i class="fas fa-map-pin"></i> Pin Location
+            </button>
+          </div>
+        </div>
+
+        <div class="dashboard-content">
+          <div class="map-container">
+            <div id="map"></div>
+            <div class="map-controls">
+              <div class="map-search">
+                <input type="text" id="addressSearch" placeholder="Search address in Howard County...">
+                <button class="btn btn-primary" onclick="searchAddress()">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+              <div class="map-layers">
+                <button class="btn btn-sm btn-secondary" onclick="changeMapLayer('default')">
+                  <i class="fas fa-map"></i> Standard
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="changeMapLayer('satellite')">
+                  <i class="fas fa-satellite"></i> Satellite
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="changeMapLayer('topographic')">
+                  <i class="fas fa-mountain"></i> Topographic
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-stats">
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #3b82f6;">
+                <i class="fas fa-school"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Schools</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #10b981;">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-number" id="hazardCount">0</div>
+                <div class="stat-label">Hazards Reported</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #8b5cf6;">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-number" id="userCount">0</div>
+                <div class="stat-label">Active Users</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #f59e0b;">
+                <i class="fas fa-route"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-number" id="routeCount">0</div>
+                <div class="stat-label">Routes Planned</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <h3>Quick Actions</h3>
+            <div class="action-buttons">
+              <button class="action-btn" onclick="showView('route-finder')">
+                <i class="fas fa-directions"></i>
+                <span>Plan New Route</span>
+              </button>
+              <button class="action-btn" onclick="startHazardReport()">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Report Hazard</span>
+              </button>
+              <button class="action-btn" onclick="useCurrentLocation()">
+                <i class="fas fa-location-dot"></i>
+                <span>Update Location</span>
+              </button>
+              <button class="action-btn" onclick="showView('safety-reports')">
+                <i class="fas fa-chart-bar"></i>
+                <span>View Reports</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Route Finder View -->
+      <div id="route-finder-view" class="view" style="display: none;">
+        <div class="view-header">
+          <h2><i class="fas fa-directions"></i> Route Finder</h2>
+          <p>Plan the safest walking or biking route to school</p>
+        </div>
+
+        <div class="route-finder">
+          <div class="route-form">
+            <div class="form-group">
+              <label for="startPoint"><i class="fas fa-map-marker-alt"></i> Starting Point</label>
+              <div class="input-with-button">
+                <input type="text" id="startPoint" placeholder="Enter address or use current location">
+                <button class="btn btn-sm btn-secondary" onclick="useCurrentLocation()">
+                  <i class="fas fa-location-dot"></i> My Location
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="endPoint"><i class="fas fa-school"></i> Destination School</label>
+              <select id="endPoint">
+                <option value="">Select a school...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Route Options</label>
+              <div class="route-options">
+                <label class="checkbox">
+                  <input type="checkbox" checked>
+                  <span>Avoid high traffic areas</span>
+                </label>
+                <label class="checkbox">
+                  <input type="checkbox" checked>
+                  <span>Prefer sidewalks</span>
+                </label>
+                <label class="checkbox">
+                  <input type="checkbox">
+                  <span>Include crosswalks</span>
+                </label>
+                <label class="checkbox">
+                  <input type="checkbox" checked>
+                  <span>Avoid known hazards</span>
+                </label>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" onclick="findRoute()">
+              <i class="fas fa-route"></i> Find Safest Route
+            </button>
+          </div>
+
+          <div class="route-results">
+            <div class="results-placeholder" id="routePlaceholder">
+              <i class="fas fa-route"></i>
+              <h3>Your Route Will Appear Here</h3>
+              <p>Enter start and destination to find the safest route</p>
+            </div>
+            
+            <div class="route-preview-container" id="routePreviewContainer" style="display: none;">
+              <div class="route-preview-header">
+                <h3><i class="fas fa-route"></i> Route Preview</h3>
+                <div class="route-preview-actions">
+                  <button class="btn btn-sm btn-secondary" onclick="zoomToRoute()">
+                    <i class="fas fa-search-plus"></i> Zoom
+                  </button>
+                  <button class="btn btn-sm btn-secondary" onclick="clearRoute()">
+                    <i class="fas fa-times"></i> Clear
+                  </button>
+                </div>
+              </div>
+              
+              <div class="route-preview-content">
+                <div class="preview-map-container">
+                  <div id="previewMap"></div>
+                </div>
+                
+                <div class="route-details">
+                  <div class="route-summary">
+                    <h4><i class="fas fa-info-circle"></i> Route Summary</h4>
+                    <div class="summary-stats" id="routeSummary"></div>
+                  </div>
+                  
+                  <div class="route-instructions">
+                    <h4><i class="fas fa-directions"></i> Turn-by-Turn Instructions</h4>
+                    <div class="instructions-list" id="routeInstructions"></div>
+                  </div>
+                  
+                  <div class="route-actions">
+                    <button class="btn btn-primary" onclick="saveRoute()">
+                      <i class="fas fa-save"></i> Save This Route
+                    </button>
+                    <button class="btn btn-secondary" onclick="shareRoute()">
+                      <i class="fas fa-share-alt"></i> Share
+                    </button>
+                    <button class="btn btn-info" onclick="printRoute()">
+                      <i class="fas fa-print"></i> Print
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved Routes View -->
+      <div id="saved-routes-view" class="view" style="display: none;">
+        <div class="view-header">
+          <h2><i class="fas fa-route"></i> Saved Routes</h2>
+          <p>Your previously saved routes</p>
+        </div>
+        <div id="savedRoutesContainer" class="saved-routes-container"></div>
+      </div>
+
+      <!-- Safety Reports View -->
+      <div id="safety-reports-view" class="view" style="display: none;">
+        <div class="view-header">
+          <h2><i class="fas fa-exclamation-triangle"></i> Safety Reports</h2>
+          <p>Reported hazards in Howard County</p>
+        </div>
+        <div class="hazard-reports-container">
+          <div id="reportsContainer"></div>
+        </div>
+      </div>
+
+      <!-- Walk Groups View -->
+      <div id="walk-groups-view" class="view" style="display: none;">
+        <div class="view-header">
+          <h2><i class="fas fa-users"></i> Walk Groups</h2>
+          <p>Join or create walking groups</p>
+        </div>
+        <div id="walkGroupsContainer" class="walk-groups-container"></div>
+      </div>
+
+      <!-- Account View -->
+      <div id="account-view" class="view" style="display: none;">
+        <div class="view-header">
+          <h2><i class="fas fa-user-circle"></i> My Account</h2>
+          <p>Manage your profile and settings</p>
+        </div>
+        <div id="accountContainer" class="account-container"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-info">
+          <div class="logo">
+            <i class="fas fa-route"></i>
+            <h3>Safe Routes AI</h3>
+          </div>
+          <p>Making Howard County school routes safer for students</p>
+          <div class="footer-links">
+            <a href="#"><i class="fab fa-github"></i> GitHub</a>
+            <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="#"><i class="fas fa-file-alt"></i> Privacy</a>
+            <a href="#"><i class="fas fa-question-circle"></i> Help</a>
+          </div>
+        </div>
+        <div class="footer-partners">
+          <h4>Supported by</h4>
+          <div class="partner-logos">
+            <div class="partner">Howard County Public Schools</div>
+            <div class="partner">Maryland DOT</div>
+            <div class="partner">Safe Kids Worldwide</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Safe Routes AI. All rights reserved. | Howard County, MD</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Hazard Reporting Modal -->
+  <div id="hazardModal" class="modal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeHazardModal()"></div>
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Report a Safety Hazard</h2>
+          <button class="close-modal" onclick="closeHazardModal()">&times;</button>
+        </div>
+        
+        <div id="hazardError" class="auth-error" style="display: none;"></div>
+        
+        <form id="hazardForm">
+          <div class="form-group">
+            <label><i class="fas fa-map-marker-alt"></i> Hazard Location</label>
+            <div class="input-with-button">
+              <input type="text" id="hazardLocation" placeholder="Enter address or click on map" required>
+              <button type="button" class="btn btn-sm btn-secondary" onclick="useCurrentLocationForHazard()">
+                <i class="fas fa-location-dot"></i> Current Location
+              </button>
+            </div>
+            <small class="form-text">Or click on the map to select a location</small>
+          </div>
+          
+          <div class="form-group">
+            <label><i class="fas fa-tag"></i> Hazard Type</label>
+            <select id="hazardType" required>
+              <option value="">Select hazard type...</option>
+              <option value="traffic">Heavy Traffic</option>
+              <option value="crosswalk">Unsafe Crosswalk</option>
+              <option value="lighting">Poor Lighting</option>
+              <option value="sidewalk">Missing Sidewalk</option>
+              <option value="speeding">Speeding Vehicles</option>
+              <option value="construction">Construction Zone</option>
+              <option value="other">Other Hazard</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label><i class="fas fa-comment"></i> Description</label>
+            <textarea id="hazardDescription" placeholder="Describe the hazard in detail..." rows="3" required></textarea>
+            <small class="form-text">Be specific about what makes this location unsafe</small>
+          </div>
+          
+          <div class="form-group">
+            <label><i class="fas fa-calendar"></i> When is it most dangerous?</label>
+            <select id="hazardTime">
+              <option value="">Any time</option>
+              <option value="morning">Morning (7-9 AM)</option>
+              <option value="afternoon">Afternoon (2-4 PM)</option>
+              <option value="evening">Evening (after dark)</option>
+              <option value="always">Always dangerous</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label><i class="fas fa-image"></i> Upload Photo (Optional)</label>
+            <input type="file" id="hazardPhoto" accept="image/*">
+            <small class="form-text">Add a photo to help others identify the hazard</small>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> Submit Hazard Report
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closeHazardModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>
