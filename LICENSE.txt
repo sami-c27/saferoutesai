@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2026 Arjun Gulati (https://codepen.io/Arjun-Gulati-the-lessful/pen/myEwbvw)
+Copyright (c) 2026 Samiksh Chaudhary
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
